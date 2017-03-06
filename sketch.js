@@ -13,7 +13,7 @@ var crossChoicesBoxY = [];
 
 var holdDrawing = false;
 var hasWon = false;
-var playersTurn = true;
+var playersTurn = 1;
 var loc1 = [];
 var loc2 = [];
 var timer = 0;
@@ -83,7 +83,7 @@ function mouseReleased() {
         if (isQuadrantEmpty(quadrant)) {
             drawObject(quadrant, choice, false);
             game[quadrant] = choice;
-            playersTurn = false;
+            playersTurn = -1;
         }
     } else {
         if (mouseX < noughtChoicesBoxX[1] && mouseX > noughtChoicesBoxX[0] &&
@@ -185,9 +185,14 @@ function isQuadrantEmpty(quadrant) {
 }
 
 function handleGame() {
-    if (!playersTurn) {
+    if (playersTurn !== 1) {
         messageBox("Thinking...", [0, 0, 155]);
-        setTimeout(getNextMove, 500);
+        getNextMove();
+        //if (timer > 5) {
+        //    timer = 0;
+        //} else {
+        //    timer++;
+        //}
     }
 
     if (isFinished()) {
@@ -197,8 +202,8 @@ function handleGame() {
 
 function getNextMove() {
     var potentialGame = getGameState();
-    game[minimax(potentialGame, 0)] = choice * -1;
-    playersTurn = true;
+    game[getBestMove(potentialGame)] = choice * -1;
+    playersTurn = 1;
 }
 
 function getGameState () {
@@ -216,13 +221,41 @@ function scoreGame(potentialGame, depth) {
         var score = potentialGame.board[winStates[i][0]] + potentialGame.board[winStates[i][1]] + potentialGame.board[winStates[i][2]];
         // Player choice is +-1, so if player wins score == +- 3, if player loses score == -+3
         // compute choice * score, if player wins (bad for minimax) this is 3, if player loses (goal) this is -3
-        if (score * choice == 3) {
-            return 10 - depth;
-        } else if (score * choice == -3) {
-            return depth - 10;
+
+        if (choice == -1) {
+            if (score === -3) {
+                return depth - 10;
+            } else if (score === 3) {
+                return 10 - depth;
+            }
+        } else {
+            if (score === 3) {
+                return depth - 10;
+            } else if (score === -3) {
+                return 10 - depth;
+            }
         }
     }
     return 0;
+}
+
+var scores = [];
+var moves = [];
+
+function getBestMove(potentialGame) {
+    var best = -1;
+    var bestInd = -1;
+    var availableMoves = getAvailableMoves(potentialGame);
+
+    for (var i = 0; i < availableMoves.length; i++) {
+        var possibleGame = makeMove(potentialGame, availableMoves[i]);
+        var reward = minimax(possibleGame, 0);
+        if (reward > best) {
+            bestInd = i;
+        }
+    }
+    return availableMoves[bestInd];
+
 }
 
 function minimax(potentialGame, depth) {
@@ -241,14 +274,14 @@ function minimax(potentialGame, depth) {
         moves.push(availableMoves[i]);
     }
     var index = -1;
-    if (choice * potentialGame.turn === 1) {
+    if (choice === potentialGame.turn) {
         // MINI
         index = getMinIndex(scores);
     } else {
         // MAX
         index = getMaxIndex(scores);
     }
-    return moves[index];
+    return scores[index];
 
 }
 
@@ -256,12 +289,21 @@ function makeMove(potentialGame, quadrant) {
     // potential game is a {board: game, turn: +-1} object
     // quadrant is the quadrant you want to make the move in
     // returns a new potentialGame
-    potentialGame.board[quadrant] = potentialGame.turn;
-    potentialGame.turn *= -1;
-    return potentialGame;
+    var newBoard = {};
+    for (var i = 0; i < 9; i++) {
+        if (i == quadrant) {
+            newBoard[i] = potentialGame.turn
+        } else {
+            newBoard[i] = potentialGame.board[i];
+        }
+    }
+    return {board : newBoard, turn : potentialGame.turn * -1};
 }
 
 function getAvailableMoves(potentialGame) {
+    if (Math.abs(scoreGame(potentialGame, 0)) == 10) {
+        return [];
+    }
     var moves = [];
     for (var i = 0; i < 9; i++) {
         if (potentialGame.board[i] === 0) {
@@ -296,8 +338,6 @@ function getMinIndex(arr) {
             currIndex = i;
         }
     }
-    print(arr);
-    print("Min found at " + currIndex);
     return currIndex;
 }
 
@@ -310,8 +350,6 @@ function getMaxIndex(arr) {
             currIndex = i;
         }
     }
-    print(arr);
-    print("Max found at " + currIndex);
     return currIndex;
 }
 
