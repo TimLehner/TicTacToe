@@ -64,9 +64,10 @@ function draw() {
     handleGame();
     // Draw the tic tac toe grid
     setupTicTacToeGrid();
-    // Wherever the mouse hovers, offer the symbol there
-    drawObject(getMouseLocationQuadrant(mouseX, mouseY), choice, true);
-
+    if (playersTurn == 1) {
+        // Wherever the mouse hovers, offer the symbol there
+        drawObject(getMouseLocationQuadrant(mouseX, mouseY), choice, true);
+    }
     // Draw the boardgame
     drawBoard();
 
@@ -81,11 +82,13 @@ function mouseReleased() {
         return;
     }
     if (choice !== 0) {
-        quadrant = getMouseLocationQuadrant(mouseX, mouseY);
-        if (isQuadrantEmpty(quadrant)) {
-            drawObject(quadrant, choice, false);
-            game[quadrant] = choice;
-            playersTurn = -1;
+        if (playersTurn == 1) {
+            quadrant = getMouseLocationQuadrant(mouseX, mouseY);
+            if (isQuadrantEmpty(quadrant)) {
+                drawObject(quadrant, choice, false);
+                game[quadrant] = choice;
+                playersTurn = -1;
+            }
         }
     } else {
         if (mouseX < noughtChoicesBoxX[1] && mouseX > noughtChoicesBoxX[0] &&
@@ -93,7 +96,7 @@ function mouseReleased() {
             choice = 1;
 
         }
-        if (mouseX < crossChoicesBoxX[1] && mouseX > crossChoicesBoxX[0]  &&
+        if (mouseX < crossChoicesBoxX[1] && mouseX > crossChoicesBoxX[0] &&
             mouseY < crossChoicesBoxY[1] && mouseY > crossChoicesBoxY[0]) {
             choice = -1;
         }
@@ -130,15 +133,15 @@ function offerChoice() {
     strokeWeight(10);
     stroke(0, 122, 0);
     noFill();
-    ellipse(noughtChoicesBoxX[0] + 10 , noughtChoicesBoxY[0] + 0.25*(noughtChoicesBoxY[1] - noughtChoicesBoxY[0]) + 10,
-    noughtChoicesBoxX[1] - noughtChoicesBoxX[0] - 20);
+    ellipse(noughtChoicesBoxX[0] + 10, noughtChoicesBoxY[0] + 0.25 * (noughtChoicesBoxY[1] - noughtChoicesBoxY[0]) + 10,
+        noughtChoicesBoxX[1] - noughtChoicesBoxX[0] - 20);
 
     strokeWeight(10);
     stroke(122, 0, 0);
-    line(crossChoicesBoxX[0] + 10, crossChoicesBoxY[0] + 0.25*(crossChoicesBoxY[1] - crossChoicesBoxY[0]) + 10,
-        crossChoicesBoxX[1] - 10, crossChoicesBoxY[1] - 0.25*(crossChoicesBoxY[1] - crossChoicesBoxY[0]) - 20);
-    line(crossChoicesBoxX[1] - 10, crossChoicesBoxY[0] + 0.25*(crossChoicesBoxY[1] - crossChoicesBoxY[0]) + 10,
-        crossChoicesBoxX[0] + 10, crossChoicesBoxY[1] - 0.25*(crossChoicesBoxY[1] - crossChoicesBoxY[0]) - 20);
+    line(crossChoicesBoxX[0] + 10, crossChoicesBoxY[0] + 0.25 * (crossChoicesBoxY[1] - crossChoicesBoxY[0]) + 10,
+        crossChoicesBoxX[1] - 10, crossChoicesBoxY[1] - 0.25 * (crossChoicesBoxY[1] - crossChoicesBoxY[0]) - 20);
+    line(crossChoicesBoxX[1] - 10, crossChoicesBoxY[0] + 0.25 * (crossChoicesBoxY[1] - crossChoicesBoxY[0]) + 10,
+        crossChoicesBoxX[0] + 10, crossChoicesBoxY[1] - 0.25 * (crossChoicesBoxY[1] - crossChoicesBoxY[0]) - 20);
 
     if (mouseX < noughtChoicesBoxX[1] && mouseX > noughtChoicesBoxX[0] &&
         mouseY < noughtChoicesBoxY[1] && mouseY > noughtChoicesBoxY[0]) {
@@ -147,7 +150,7 @@ function offerChoice() {
         rect(noughtChoicesBoxX[0], noughtChoicesBoxY[0] + 0.25 * (crossChoicesBoxY[1] - crossChoicesBoxY[0]),
             noughtChoicesBoxX[1] - noughtChoicesBoxX[0], noughtChoicesBoxX[1] - noughtChoicesBoxX[0]);
     }
-    if (mouseX < crossChoicesBoxX[1] && mouseX > crossChoicesBoxX[0]  &&
+    if (mouseX < crossChoicesBoxX[1] && mouseX > crossChoicesBoxX[0] &&
         mouseY < crossChoicesBoxY[1] && mouseY > crossChoicesBoxY[0]) {
         noStroke();
         fill(0, 255, 0, 130);
@@ -181,8 +184,6 @@ function getQuadrantTopLeft(quadrant) {
     var yLoc = grid_y + Math.floor(quadrant / 3) * (grid_x / 3);
     return [xLoc, yLoc];
 }
-
-
 
 
 //
@@ -222,7 +223,7 @@ function getNextMove() {
     playersTurn = 1;
 }
 
-function getGameState () {
+function getGameState() {
     var board = {};
     for (var i = 0; i < 9; i++) {
         // copies the state of the board to a new variable so we can recurse
@@ -230,7 +231,7 @@ function getGameState () {
     }
     // getGameState() is only ever for the AI, so it will be the AI's turn when getGameState is called.
     // Therefore set turn to be the opposite of what player is playing at.
-    return {board : board, turn: choice * -1};
+    return {board: board, turn: choice * -1};
 }
 
 function scoreGame(potentialGame, depth) {
@@ -384,7 +385,7 @@ function makeMove(potentialGame, quadrant) {
             newBoard[i] = potentialGame.board[i];
         }
     }
-    return {board : newBoard, turn : potentialGame.turn * -1};
+    return {board: newBoard, turn: potentialGame.turn * -1};
 }
 
 function getAvailableMoves(potentialGame) {
