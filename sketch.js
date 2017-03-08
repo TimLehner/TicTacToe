@@ -302,8 +302,11 @@ function getBestMove(potentialGame) {
         // Otherwise, compute the "value" of this move, using Minimax (recursive)
         var reward = minimax(possibleGame, 0);
         if (reward > best) {
+            best = reward;
             bestInd = i;
         }
+        console.log(availableMoves[i]);
+        console.log(reward);
     }
     return availableMoves[bestInd];
 
@@ -358,6 +361,7 @@ function minimax(potentialGame, depth) {
     // After all that recursion, we'll have figured out what each move is valued at by Minimax.
 
     var index = -1;
+    //console.log(scores);
     if (choice === potentialGame.turn) {
         // If the move we just tested was for the human player, we want to minimise his score
         // MINI
